@@ -1,0 +1,10 @@
+{
+  "name": "makyd-dashboard",
+  "version": "1.0.0",
+  "description": "Makyd Academy Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}
