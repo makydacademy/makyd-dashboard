@@ -132,7 +132,7 @@ const server = http.createServer(async (req, res) => {
         // Guardar orden
         if (data.order) {
           db.run(`DELETE FROM app_order WHERE key='order'`, () => {
-            db.run(`INSERT INTO app_order VALUES ('order', ?)`, [JSON.stringify(data.order)]);
+            db.run(`INSERT OR REPLACE INTO app_order VALUES ('order', ?)`, [JSON.stringify(data.order)]);
           });
         }
 
