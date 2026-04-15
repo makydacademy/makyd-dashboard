@@ -61,6 +61,12 @@ function initDB() {
       value TEXT
     )`);
 
+    // Tabla de configuración
+    db.run(`CREATE TABLE IF NOT EXISTS app_config (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    )`);
+
     console.log('✓ Tablas creadas');
   });
 }
@@ -78,11 +84,14 @@ const server = http.createServer(async (req, res) => {
       db.all(`SELECT * FROM tasks`, (err2, tasks) => {
         db.all(`SELECT * FROM sessions`, (err3, sessions) => {
           db.get(`SELECT value FROM app_order WHERE key='order'`, (err4, orderRow) => {
-            const order = orderRow ? JSON.parse(orderRow.value) : (students || []).map(s => s.id);
-            const data = { students, tasks, sessions, order };
-            res.setHeader('Content-Type', 'application/json');
-            res.writeHead(200);
-            res.end(JSON.stringify(data));
+            db.get(`SELECT value FROM app_config WHERE key='api_key'`, (err5, apiRow) => {
+              const order = orderRow ? JSON.parse(orderRow.value) : (students || []).map(s => s.id);
+              const apiKey = apiRow ? apiRow.value : '';
+              const data = { students, tasks, sessions, order, apiKey };
+              res.setHeader('Content-Type', 'application/json');
+              res.writeHead(200);
+              res.end(JSON.stringify(data));
+            });
           });
         });
       });
@@ -134,6 +143,11 @@ const server = http.createServer(async (req, res) => {
           db.run(`DELETE FROM app_order WHERE key='order'`, () => {
             db.run(`INSERT OR REPLACE INTO app_order VALUES ('order', ?)`, [JSON.stringify(data.order)]);
           });
+        }
+
+        // Guardar API key
+        if (data.apiKey) {
+          db.run(`INSERT OR REPLACE INTO app_config VALUES ('api_key', ?)`, [data.apiKey]);
         }
 
         res.writeHead(200);

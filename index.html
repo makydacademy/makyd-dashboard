@@ -540,13 +540,14 @@ async function loadApp() {
       APP.tasks = data.tasks && data.tasks.length > 0 ? data.tasks : DEFAULT_TASKS;
       APP.sessions = data.sessions || DEFAULT_SESSIONS;
       APP.order = data.order || APP.students.map(x=>x.id);
+      APP.apiKey = data.apiKey || '';
       if (!data.students || data.students.length === 0) save('students');
       if (!data.tasks || data.tasks.length === 0) save('tasks');
     } else {
-      APP = {students:[...DEFAULT_STUDENTS],tasks:[...DEFAULT_TASKS],sessions:[...DEFAULT_SESSIONS],order:DEFAULT_STUDENTS.map(x=>x.id)};
+      APP = {students:[...DEFAULT_STUDENTS],tasks:[...DEFAULT_TASKS],sessions:[...DEFAULT_SESSIONS],order:DEFAULT_STUDENTS.map(x=>x.id),apiKey:''};
     }
   } catch(e) {
-    APP = {students:[...DEFAULT_STUDENTS],tasks:[...DEFAULT_TASKS],sessions:[...DEFAULT_SESSIONS],order:DEFAULT_STUDENTS.map(x=>x.id)};
+    APP = {students:[...DEFAULT_STUDENTS],tasks:[...DEFAULT_TASKS],sessions:[...DEFAULT_SESSIONS],order:DEFAULT_STUDENTS.map(x=>x.id),apiKey:''};
   }
   isDark = localStorage.getItem('mk_dark')==='true';
 }
@@ -620,7 +621,7 @@ function toast(msg) {
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   if (id==='modal-api') {
-    const k = localStorage.getItem('mk_api') || '';
+    const k = APP.apiKey || '';
     document.getElementById('api-key-input').value = k;
   }
 }
@@ -629,9 +630,14 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click', e=>{ if(e.target===el) el.classList.remove('open'); });
 });
 
-function saveApiKey() {
+async function saveApiKey() {
   const v = document.getElementById('api-key-input').value.trim();
-  if (v) { localStorage.setItem('mk_api', v); updateApiStatus(); toast('API key guardada ✓'); }
+  if (v) {
+    APP.apiKey = v;
+    await save('apiKey');
+    updateApiStatus();
+    toast('API key guardada ✓');
+  }
   closeModal('modal-api');
 }
 
