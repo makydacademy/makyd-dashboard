@@ -531,31 +531,41 @@ let isDark = false;
 let pendingConfirm = null;
 let lastScribe = null;
 
-function loadApp() {
+async function loadApp() {
   try {
-    const s = localStorage.getItem('mk_students');
-    const t = localStorage.getItem('mk_tasks');
-    const ss = localStorage.getItem('mk_sessions');
-    const o = localStorage.getItem('mk_order');
-    APP.students = s ? JSON.parse(s) : DEFAULT_STUDENTS;
-    APP.tasks = t ? JSON.parse(t) : DEFAULT_TASKS;
-    APP.sessions = ss ? JSON.parse(ss) : DEFAULT_SESSIONS;
-    APP.order = o ? JSON.parse(o) : APP.students.map(x=>x.id);
-    if (!s) save('students');
-    if (!t) save('tasks');
-    if (!ss) save('sessions');
-    if (!o) save('order');
+    const res = await fetch('/api/data');
+    if (res.ok) {
+      const data = await res.json();
+      APP.students = data.students && data.students.length > 0 ? data.students : DEFAULT_STUDENTS;
+      APP.tasks = data.tasks && data.tasks.length > 0 ? data.tasks : DEFAULT_TASKS;
+      APP.sessions = data.sessions || DEFAULT_SESSIONS;
+      APP.order = data.order || APP.students.map(x=>x.id);
+      if (!data.students || data.students.length === 0) save('students');
+      if (!data.tasks || data.tasks.length === 0) save('tasks');
+    } else {
+      APP = {students:[...DEFAULT_STUDENTS],tasks:[...DEFAULT_TASKS],sessions:[...DEFAULT_SESSIONS],order:DEFAULT_STUDENTS.map(x=>x.id)};
+    }
   } catch(e) {
     APP = {students:[...DEFAULT_STUDENTS],tasks:[...DEFAULT_TASKS],sessions:[...DEFAULT_SESSIONS],order:DEFAULT_STUDENTS.map(x=>x.id)};
   }
   isDark = localStorage.getItem('mk_dark')==='true';
 }
 
-function save(key) {
-  if (key==='students') localStorage.setItem('mk_students', JSON.stringify(APP.students));
-  if (key==='tasks') localStorage.setItem('mk_tasks', JSON.stringify(APP.tasks));
-  if (key==='sessions') localStorage.setItem('mk_sessions', JSON.stringify(APP.sessions));
-  if (key==='order') localStorage.setItem('mk_order', JSON.stringify(APP.order));
+async function save(key) {
+  try {
+    await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        students: APP.students,
+        tasks: APP.tasks,
+        sessions: APP.sessions,
+        order: APP.order
+      })
+    });
+  } catch(e) {
+    console.error('Error guardando:', e);
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -1716,11 +1726,13 @@ function scheduleNightlyBackup() {
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
-loadApp();
-loadToday();
-applyTheme();
-refresh();
-scheduleNightlyBackup();
+(async () => {
+  await loadApp();
+  loadToday();
+  applyTheme();
+  refresh();
+  scheduleNightlyBackup();
+})();
 </script>
 </body>
 </html>
