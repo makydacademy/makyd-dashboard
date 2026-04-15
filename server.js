@@ -60,7 +60,7 @@ const server = http.createServer(async (req, res) => {
 // Intentar puertos hasta encontrar uno libre
 function startOnFreePort(ports) {
   const port = ports.shift();
-  server.listen(port, '127.0.0.1')
+  server.listen(port, '0.0.0.0')
     .on('listening', () => {
       const url = `http://127.0.0.1:${port}`;
       console.log(`\n  Makyd Academy: ${url}`);
