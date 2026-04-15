@@ -100,36 +100,40 @@ const server = http.createServer(async (req, res) => {
 
         // Guardar estudiantes
         if (data.students) {
-          db.run(`DELETE FROM students`);
-          data.students.forEach(s => {
-            db.run(`INSERT INTO students VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-              [s.id, s.name, s.instagram, s.followersStart, s.followersNow, s.status, s.week, s.lastContact, s.objective, s.fear, s.notes]);
+          db.run(`DELETE FROM students`, () => {
+            data.students.forEach(s => {
+              db.run(`INSERT OR REPLACE INTO students VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+                [s.id, s.name, s.instagram, s.followersStart, s.followersNow, s.status, s.week, s.lastContact, s.objective, s.fear, s.notes]);
+            });
           });
         }
 
         // Guardar tareas
         if (data.tasks) {
-          db.run(`DELETE FROM tasks`);
-          data.tasks.forEach(t => {
-            db.run(`INSERT INTO tasks VALUES (?,?,?,?,?,?)`,
-              [t.id, t.studentId, t.title, t.owner, t.done ? 1 : 0, t.createdAt]);
+          db.run(`DELETE FROM tasks`, () => {
+            data.tasks.forEach(t => {
+              db.run(`INSERT OR REPLACE INTO tasks VALUES (?,?,?,?,?,?)`,
+                [t.id, t.studentId, t.title, t.owner, t.done ? 1 : 0, t.createdAt]);
+            });
           });
         }
 
         // Guardar sesiones
         if (data.sessions) {
-          db.run(`DELETE FROM sessions`);
-          data.sessions.forEach(s => {
-            db.run(`INSERT INTO sessions VALUES (?,?,?,?,?,?,?,?,?,?)`,
-              [s.id, s.studentId, s.name, s.date, JSON.stringify(s.resumen), JSON.stringify(s.tareasZame),
-               JSON.stringify(s.tareasAlumna), JSON.stringify(s.recomendaciones), s.mensajeWhatsapp, s.nombreSesion]);
+          db.run(`DELETE FROM sessions`, () => {
+            data.sessions.forEach(s => {
+              db.run(`INSERT OR REPLACE INTO sessions VALUES (?,?,?,?,?,?,?,?,?,?)`,
+                [s.id, s.studentId, s.name, s.date, JSON.stringify(s.resumen), JSON.stringify(s.tareasZame),
+                 JSON.stringify(s.tareasAlumna), JSON.stringify(s.recomendaciones), s.mensajeWhatsapp, s.nombreSesion]);
+            });
           });
         }
 
         // Guardar orden
         if (data.order) {
-          db.run(`DELETE FROM app_order WHERE key='order'`);
-          db.run(`INSERT INTO app_order VALUES ('order', ?)`, [JSON.stringify(data.order)]);
+          db.run(`DELETE FROM app_order WHERE key='order'`, () => {
+            db.run(`INSERT INTO app_order VALUES ('order', ?)`, [JSON.stringify(data.order)]);
+          });
         }
 
         res.writeHead(200);
