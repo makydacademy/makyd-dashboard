@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const API_KEY = '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';
+const API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const MODEL = 'claude-haiku-4-5-20251001';
 
 const server = http.createServer(async (req, res) => {
