@@ -642,7 +642,7 @@ async function saveApiKey() {
 }
 
 function updateApiStatus() {
-  const has = !!(localStorage.getItem('mk_api'));
+  const has = !!(APP.apiKey);
   const dot = document.getElementById('api-dot');
   const txt = document.getElementById('api-status-txt');
   const adot = document.getElementById('agent-dot');
